@@ -102,7 +102,9 @@
 1. **`assets/` 目录**（与 exe 同级或项目根目录）— 优先使用
 2. **系统 PATH** — 回退方案
 
-> `assets/` 已包含 Windows 版二进制：`ffmpeg.exe` / `ffplay.exe` / `ffprobe.exe` / `yt-dlp.exe` / `aria2c.exe`
+> `assets/` 已包含：`yt-dlp.exe` / `aria2c.exe` / `orange-cli.exe`
+> 
+> FFmpeg 二进制（`ffmpeg.exe` / `ffplay.exe` / `ffprobe.exe`）因超过 GitHub 100MB 限制未包含在仓库中，请从 [ffmpeg.org](https://ffmpeg.org/download.html) 下载后放入 `assets/`，或通过包管理器安装到 PATH。
 
 ### 手动安装依赖
 
@@ -155,13 +157,13 @@ cargo build --release
 
 ```
 orange-cli/
-├── assets/                # 外部工具二进制（Windows）
-│   ├── ffmpeg.exe
-│   ├── ffplay.exe
-│   ├── ffprobe.exe
-│   ├── yt-dlp.exe
-│   ├── aria2c.exe
-│   └── orange-cli.exe    # 预编译主程序
+├── assets/                # 外部工具二进制
+│   ├── yt-dlp.exe         # ✅ 已包含
+│   ├── aria2c.exe         # ✅ 已包含
+│   ├── orange-cli.exe     # ✅ 预编译主程序
+│   ├── ffmpeg.exe         # ⚠️ 需自行下载 (GitHub 100MB限制)
+│   ├── ffplay.exe         # ⚠️ 需自行下载
+│   └── ffprobe.exe        # ⚠️ 需自行下载
 ├── src/
 │   ├── main.rs           # 入口 — 终端初始化
 │   ├── app.rs            # 事件循环 + 按键处理
