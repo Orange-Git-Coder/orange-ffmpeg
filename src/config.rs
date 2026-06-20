@@ -4,6 +4,28 @@ use std::path::PathBuf;
 
 const CONFIG_FILE: &str = "orange-cli.toml";
 
+/// Resolve a tool binary path relative to the executable's assets/ directory.
+/// Falls back to the plain name (PATH lookup) if the asset file doesn't exist.
+fn asset_path(name: &str) -> String {
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|d| d.to_path_buf()));
+    if let Some(dir) = exe_dir {
+        let candidate = dir.join("assets").join(name);
+        if candidate.exists() {
+            return candidate.to_string_lossy().to_string();
+        }
+    }
+    // Fallback: try project-root assets/ (for cargo run)
+    if let Ok(manifest) = std::env::var("CARGO_MANIFEST_DIR") {
+        let candidate = PathBuf::from(&manifest).join("assets").join(name);
+        if candidate.exists() {
+            return candidate.to_string_lossy().to_string();
+        }
+    }
+    name.to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub download_dir: PathBuf,
@@ -22,11 +44,11 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             download_dir: PathBuf::from("./downloads"),
-            ffmpeg_path: "ffmpeg".into(),
-            ffprobe_path: "ffprobe".into(),
-            ffplay_path: "ffplay".into(),
-            ytdlp_path: "yt-dlp".into(),
-            aria2_path: "aria2c".into(),
+            ffmpeg_path: asset_path("ffmpeg.exe"),
+            ffprobe_path: asset_path("ffprobe.exe"),
+            ffplay_path: asset_path("ffplay.exe"),
+            ytdlp_path: asset_path("yt-dlp.exe"),
+            aria2_path: asset_path("aria2c.exe"),
             aria2_max_connections: 16,
             aria2_split: 16,
             default_crf: "23".into(),

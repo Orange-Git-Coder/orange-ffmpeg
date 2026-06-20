@@ -89,10 +89,56 @@ impl App {
     // ── Key Handler ──────────────────────────────────────────────────
 
     fn handle_key(&mut self, key: KeyCode) {
+        // Global keys: output scrolling works in any mode
+        match key {
+            KeyCode::PageUp => {
+                self.scroll_output_up();
+                return;
+            }
+            KeyCode::PageDown => {
+                self.scroll_output_down();
+                return;
+            }
+            KeyCode::End => {
+                self.state.output_scroll = usize::MAX;
+                return;
+            }
+            _ => {}
+        }
+
         match self.state.input_mode {
             InputMode::Normal => self.handle_normal_key(key),
             InputMode::Palette => self.handle_palette_key(key),
-            InputMode::SubCommand => self.handle_normal_key(key), // same as normal for now
+            InputMode::SubCommand => self.handle_normal_key(key),
+        }
+    }
+
+    fn scroll_output_up(&mut self) {
+        let visible_h = 10; // rough estimate; clamped in render anyway
+        let total = self.state.output_lines.len();
+        let max_scroll = total.saturating_sub(visible_h);
+        let cur = if self.state.output_scroll == usize::MAX {
+            max_scroll
+        } else {
+            self.state.output_scroll.min(max_scroll)
+        };
+        self.state.output_scroll = cur.saturating_sub(5);
+    }
+
+    fn scroll_output_down(&mut self) {
+        let visible_h = 10;
+        let total = self.state.output_lines.len();
+        let max_scroll = total.saturating_sub(visible_h);
+        let cur = if self.state.output_scroll == usize::MAX {
+            max_scroll
+        } else {
+            self.state.output_scroll.min(max_scroll)
+        };
+        let new_scroll = cur.saturating_add(5);
+        if new_scroll >= max_scroll {
+            self.state.output_scroll = usize::MAX; // snap to bottom
+        } else {
+            self.state.output_scroll = new_scroll;
         }
     }
 
@@ -170,11 +216,21 @@ impl App {
             KeyCode::Up => {
                 if self.state.palette_selected > 0 {
                     self.state.palette_selected -= 1;
+                    // Scroll up if selection goes above visible area
+                    if self.state.palette_selected < self.state.palette_scroll {
+                        self.state.palette_scroll = self.state.palette_selected;
+                    }
                 }
             }
             KeyCode::Down => {
                 if self.state.palette_selected + 1 < self.state.palette_filtered.len() {
                     self.state.palette_selected += 1;
+                    // Scroll down if selection goes below visible area
+                    // visible_h is dynamic; use a generous estimate, clamped in render
+                    let visible_end = self.state.palette_scroll.saturating_add(8);
+                    if self.state.palette_selected >= visible_end {
+                        self.state.palette_scroll = self.state.palette_selected.saturating_sub(4);
+                    }
                 }
             }
             KeyCode::Tab => {
@@ -231,6 +287,7 @@ impl App {
         if self.state.palette_selected >= self.state.palette_filtered.len() {
             self.state.palette_selected = 0;
         }
+        self.state.palette_scroll = 0;
     }
 
     fn try_autocomplete(&mut self) {

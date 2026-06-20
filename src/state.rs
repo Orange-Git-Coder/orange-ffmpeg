@@ -67,6 +67,7 @@ pub struct AppState {
     pub palette_items: Vec<PaletteItem>,
     pub palette_filtered: Vec<usize>,
     pub palette_selected: usize,
+    pub palette_scroll: usize,
     pub palette_open: bool,
 
     // Output window
@@ -96,10 +97,11 @@ impl AppState {
             palette_items: Vec::new(),
             palette_filtered: Vec::new(),
             palette_selected: 0,
+            palette_scroll: 0,
             palette_open: false,
 
             output_lines: VecDeque::new(),
-            output_scroll: 0,
+            output_scroll: usize::MAX, // auto-bottom
 
             active_command: None,
             command_args: Vec::new(),
@@ -109,12 +111,20 @@ impl AppState {
     }
 
     pub fn push_output(&mut self, kind: OutputKind, text: &str) {
+        // If user has manually scrolled up, keep their position;
+        // otherwise auto-scroll to bottom.
+        let was_at_bottom = self.output_scroll == usize::MAX;
+
         self.output_lines.push_back(OutputLine {
             text: text.to_string(),
             kind,
         });
         if self.output_lines.len() > 1000 {
             self.output_lines.pop_front();
+        }
+
+        if was_at_bottom || self.output_lines.len() <= 1 {
+            self.output_scroll = usize::MAX; // auto-bottom
         }
     }
 

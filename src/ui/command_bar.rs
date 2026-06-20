@@ -17,7 +17,7 @@ pub fn render(f: &mut Frame, area: Rect, state: &AppState) {
     // ── Divider ────────────────────────────────────────────────────
     f.render_widget(
         Paragraph::new(Line::from(Span::styled(
-            "─".repeat(area.width as usize),
+            "▔".repeat(area.width as usize),
             Style::default().fg(colors::DIVIDER),
         ))),
         Rect {
@@ -33,21 +33,19 @@ pub fn render(f: &mut Frame, area: Rect, state: &AppState) {
         height: 1,
         ..area
     };
-    let prompt = Span::styled("▎", Style::default().fg(colors::ORANGE));
     let input_text = if state.input.is_empty() {
         Span::styled("输入命令…", Style::default().fg(colors::TEXT_HINT))
     } else {
-        Span::styled(&state.input, Style::default().fg(colors::TEXT_PRIMARY))
+        Span::styled(&state.input, Style::default().fg(colors::TEXT))
     };
-    let cursor = Span::styled("█", Style::default().fg(colors::ORANGE));
 
     f.render_widget(
         Paragraph::new(Line::from(vec![
             Span::styled(" ", Style::default()),
-            prompt,
+            Span::styled("▎", Style::default().fg(colors::ORANGE)),
             Span::styled(" ", Style::default()),
             input_text,
-            cursor,
+            Span::styled("█", Style::default().fg(colors::ORANGE)),
         ])),
         input_area,
     );
@@ -59,13 +57,10 @@ pub fn render(f: &mut Frame, area: Rect, state: &AppState) {
         ..area
     };
     f.render_widget(
-        Paragraph::new(Line::from(vec![
-            Span::styled("  ", Style::default()),
-            Span::styled(
-                "/ 命令面板  ↑↓ 历史  Tab 补全  Esc 清空  Enter 执行",
-                Style::default().fg(colors::TEXT_HINT),
-            ),
-        ])),
+        Paragraph::new(Line::from(Span::styled(
+            "  / 命令  ↑↓ 历史  Tab 补全  Esc 清空  Enter 执行",
+            Style::default().fg(colors::TEXT_HINT),
+        ))),
         hint_area,
     );
 }
